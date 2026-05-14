@@ -868,7 +868,7 @@ export class SalesService {
 
   async findOrderByCodeForUser(userId: string, orderCode: string) {
     const doc = await this.orderModel
-      .findOne({ orderCode, user: userId })
+      .findOne({ orderCode, user: new Types.ObjectId(userId) })
       .populate('user', 'fullName phone email')
       .lean()
       .exec();
@@ -879,9 +879,13 @@ export class SalesService {
   }
 
   async cancelOrderByUser(userId: string, orderId: string) {
+    if (!Types.ObjectId.isValid(orderId)) {
+      throw new BadRequestException('ID đơn hàng không hợp lệ');
+    }
+
     const order = await this.orderModel.findOne({
-      _id: orderId,
-      user: userId,
+      _id: new Types.ObjectId(orderId),
+      user: new Types.ObjectId(userId),
     });
 
     if (!order) {
